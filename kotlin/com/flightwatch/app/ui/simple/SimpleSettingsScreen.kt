@@ -339,7 +339,7 @@ fun SimpleSettingsScreen(
                 settings.githubToken = githubToken.trim()
                 android.widget.Toast.makeText(context.applicationContext, "GitHub token saved", android.widget.Toast.LENGTH_SHORT).show()
             }) { Text("Save GitHub token", fontSize = 13.sp) }
-            Text("Required scopes: gist (read/write)", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Required scopes: repo (full control)", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(12.dp))
             
             // Backup location info
