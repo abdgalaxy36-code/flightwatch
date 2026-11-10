@@ -348,7 +348,8 @@ fun SimpleSettingsScreen(
                     Text("Backup location", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.height(4.dp))
                     Text("GitHub Gist (private)", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("File: flightwatch_backup.json", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Repo: github.com/abdgalaxy36-code/flightwatch", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("File: flightwatch-backup.json", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("Contains: flights, settings, price history, API usage", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("Both Simple & Extra Mode data", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -410,12 +411,11 @@ fun SimpleSettingsScreen(
                                 android.widget.Toast.makeText(context.applicationContext, "Restoring...", android.widget.Toast.LENGTH_SHORT).show()
                                 val app = context.applicationContext as com.flightwatch.app.FlightWatchApp
                                 val token = settings.githubToken ?: githubToken
-                                val gistId = settings.githubGistId ?: ""
-                                if (token.isNullOrBlank() || gistId.isBlank()) {
-                                    android.widget.Toast.makeText(context.applicationContext, "Need GitHub token and gist ID", android.widget.Toast.LENGTH_SHORT).show()
+                                if (token.isNullOrBlank()) {
+                                    android.widget.Toast.makeText(context.applicationContext, "Enter GitHub token first", android.widget.Toast.LENGTH_SHORT).show()
                                     return@launch
                                 }
-                                val json = com.flightwatch.app.data.GitHubBackup(context).pullFromGitHub(token, gistId)
+                                val json = com.flightwatch.app.data.GitHubBackup(context).pullFromGitHub(token)
                                 if (json != null) {
                                     val data = com.google.gson.Gson().fromJson(json, com.flightwatch.app.data.GitHubBackup.BackupData::class.java)
                                     app.flightsStore.save(data.selectedFlights)

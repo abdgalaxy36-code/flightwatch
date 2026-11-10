@@ -117,25 +117,39 @@ class GitHubBackup(private val context: Context) {
         }
     }
 
-    /** Pull backup from GitHub gist. Returns null on failure. */
-    suspend fun pullFromGitHub(token: String, gistId: String): String? = withContext(Dispatchers.IO) {
+    /** Pull backup from GitHub repo. Returns null on failure. */
+    suspend fun pullFromGitHub(token: String): String? = withContext(Dispatchers.IO) {
         try {
-            val url = URL("https://api.github.com/gists/$gistId")
+            val owner = "abdgalaxy36-code"
+            val repo = "flightwatch"
+            val path = "flightwatch-backup.json"
+            
+            val url = URL("https://api.github.com/repos/$owner/$repo/contents/$path")
             val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.connectTimeout = 15000
+            conn.readTimeout = 30000
             conn.setRequestProperty("Authorization", "token $token")
-            conn.setRequestProperty("Accept", "application/json")
+            conn.setRequestProperty("Accept", "application/vnd.github.v3+json")
 
+            if (conn.responseCode !in 200..299) {
+                conn.disconnect()
+                return@withContext null
+            }
             val reader = BufferedReader(InputStreamReader(conn.inputStream))
             val response = reader.readText()
             reader.close()
             conn.disconnect()
 
-            // Parse gist JSON to extract file content
-            val map: Map<String, Any> = gson.fromJson(response, object : TypeToken<Map<String, Any>>() {}.type)
-            val files = map["files"] as? Map<String, Any> ?: return@withContext null
-            val file = files["flightwatch_backup.json"] as? Map<String, Any> ?: return@withContext null
-            file["content"] as? String
+            // Parse repo content response
+            val json = com.google.gson.JsonParser.parseString(response)
+            val content = json.asJsonObject.get("content")?.asString
+            val encoding = json.asJsonObject.get("encoding")?.asString
+            if (encoding == "base64" && content != null) {
+                String(java.util.Base64.getDecoder().decode(content))
+            } else null
         } catch (e: Exception) {
+            android.util.Log.w("GitHubBackup", "pull failed: ${e.message}")
             null
         }
     }
